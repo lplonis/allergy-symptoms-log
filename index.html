@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Morning Log — Corina</title>
+<style>
+  :root{
+    --bg:#f4f6f8; --card:#ffffff; --ink:#1f2a33; --muted:#6b7b89; --line:#dbe3ea;
+    --accent:#2a9d8f; --accent-ink:#0c3b36; --sel:#2a9d8f; --sel-ink:#ffffff;
+    --warn:#c05621; --good:#2a9d8f; --shadow:0 2px 10px rgba(20,40,55,.06);
+    --s1:#e9f5ee; --s2:#f0f3d6; --s3:#fbeecb; --s4:#f7dcc4; --s5:#f4c9c9;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;line-height:1.45;padding-bottom:96px}
+  .wrap{max-width:600px;margin:0 auto;padding:16px 14px 30px}
+  header.top{padding:6px 4px 2px}
+  header.top h1{font-size:1.35rem;margin:0}
+  header.top .sub{color:var(--muted);font-size:.9rem;margin:4px 0 0}
+  .datebar{display:flex;align-items:center;gap:10px;margin:14px 0 6px;padding:12px 14px;
+    background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
+  .datebar .lab{font-size:.8rem;color:var(--muted)}
+  .datebar .date{font-size:1.02rem;font-weight:700}
+  /* legend */
+  details.legend{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    margin:10px 0 18px;box-shadow:var(--shadow);overflow:hidden}
+  details.legend summary{cursor:pointer;padding:12px 14px;font-weight:650;font-size:.9rem;
+    list-style:none;display:flex;align-items:center;gap:8px}
+  details.legend summary::-webkit-details-marker{display:none}
+  details.legend summary::after{content:"▸";margin-left:auto;color:var(--muted);transition:transform .15s}
+  details.legend[open] summary::after{transform:rotate(90deg)}
+  .legrow{display:flex;gap:10px;align-items:flex-start;padding:8px 14px;border-top:1px solid var(--line);font-size:.86rem}
+  .legnum{flex:0 0 26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:.9rem;color:#33434f}
+  .legrow b{font-weight:700}
+  .legrow .d{color:var(--muted)}
+  /* question block */
+  .q{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 14px 12px;
+    margin-bottom:12px;box-shadow:var(--shadow)}
+  .q.miss{border-color:#e6a23c;box-shadow:0 0 0 2px rgba(230,162,60,.18)}
+  .q .qlab{font-weight:650;font-size:.98rem;margin:0 0 3px}
+  .q .qhelp{color:var(--muted);font-size:.8rem;margin:0 0 10px}
+  .secthead{margin:22px 4px 8px;font-size:.76rem;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-weight:700}
+  /* option buttons */
+  .opts{display:flex;gap:7px}
+  .opts.scale5 .opt{flex:1 1 0;min-width:0}
+  .opts.choice{flex-wrap:wrap}
+  .opts.choice .opt{flex:1 1 auto}
+  .opt{border:1px solid var(--line);background:#fbfdfe;border-radius:12px;padding:9px 6px;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:2px;transition:transform .05s, background .1s;
+    user-select:none;text-align:center;min-height:52px;justify-content:center}
+  .opt:active{transform:scale(.95)}
+  .opt .n{font-size:1.15rem;font-weight:800;line-height:1}
+  .opt .w{font-size:.68rem;color:var(--muted);font-weight:600;line-height:1.05}
+  .opt.on{background:var(--sel);border-color:var(--sel);color:var(--sel-ink)}
+  .opt.on .w{color:rgba(255,255,255,.9)}
+  .opts.scale5 .opt[data-v="1"].on{background:#2a9d8f;border-color:#2a9d8f}
+  .opts.scale5 .opt[data-v="2"].on{background:#8bb24a;border-color:#8bb24a}
+  .opts.scale5 .opt[data-v="3"].on{background:#e0a52e;border-color:#e0a52e;color:#2a1c00}
+  .opts.scale5 .opt[data-v="3"].on .w{color:rgba(30,20,0,.7)}
+  .opts.scale5 .opt[data-v="4"].on{background:#dd7f28;border-color:#dd7f28}
+  .opts.scale5 .opt[data-v="5"].on{background:#c0392b;border-color:#c0392b}
+  /* optional text */
+  textarea.note,input.note{width:100%;background:#fbfdfe;border:1px solid var(--line);color:var(--ink);
+    border-radius:10px;padding:10px 12px;font-size:.9rem;font-family:inherit;margin-top:10px;resize:vertical}
+  textarea.note{min-height:44px}
+  .note::placeholder{color:#9aabb8}
+  /* submit bar */
+  .bar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(244,246,248,.94);
+    backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:12px 14px calc(12px + env(safe-area-inset-bottom))}
+  .bar .inner{max-width:600px;margin:0 auto}
+  .submit{width:100%;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:14px;
+    font-size:1rem;font-weight:750;cursor:pointer}
+  .submit:active{transform:scale(.99)}
+  .confirm{text-align:center;font-size:.85rem;font-weight:650;margin-top:8px;min-height:18px}
+  .confirm.ok{color:var(--good)}
+  .confirm.err{color:var(--warn)}
+  .copybox{display:none;margin-top:10px}
+  .copybox textarea{width:100%;min-height:120px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.78rem;
+    background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px}
+  .copybtn{margin-top:8px;width:100%;background:#33434f;color:#fff;border:none;border-radius:10px;padding:10px;font-weight:650;cursor:pointer}
+  footer{color:#8aa0b0;font-size:.72rem;text-align:center;margin-top:18px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Morning Log — Corina</h1>
+    <p class="sub">Fill in within ~10 min of waking. Tap a value for each — no typing needed. Same questions every day.</p>
+  </header>
+
+  <div class="datebar">
+    <span class="lab">Today</span>
+    <span class="date" id="today"></span>
+  </div>
+
+  <details class="legend">
+    <summary>ℹ️ What the 1–5 numbers mean</summary>
+    <div class="legrow"><span class="legnum" style="background:var(--s1)">1</span><div><b>None</b> <span class="d">— not present at all</span></div></div>
+    <div class="legrow"><span class="legnum" style="background:var(--s2)">2</span><div><b>Slight</b> <span class="d">— barely noticeable, easy to ignore</span></div></div>
+    <div class="legrow"><span class="legnum" style="background:var(--s3)">3</span><div><b>Mild</b> <span class="d">— noticeable, but not really bothering me</span></div></div>
+    <div class="legrow"><span class="legnum" style="background:var(--s4)">4</span><div><b>Moderate</b> <span class="d">— clearly bothersome, hard to ignore</span></div></div>
+    <div class="legrow"><span class="legnum" style="background:var(--s5)">5</span><div><b>Severe</b> <span class="d">— strong, hard to function / very uncomfortable</span></div></div>
+  </details>
+
+  <div id="form"></div>
+
+  <footer id="foot"></footer>
+</div>
+
+<div class="bar">
+  <div class="inner">
+    <button class="submit" id="submit">Submit this morning</button>
+    <div class="confirm" id="confirm"></div>
+    <div class="copybox" id="copybox">
+      <textarea id="copytext" readonly></textarea>
+      <button class="copybtn" id="copybtn">Copy — then paste/text it to Leon</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ─────────────────────────────────────────────────────────────
+   DATA COLLECTION (wire once the Google Form exists)
+   Mirrors the Amsterdam page: POST to a Google Form so every
+   morning becomes one row in the linked Google Sheet.
+   Leave formAction "" and the page still works — it will show a
+   copy-and-send fallback instead of posting.
+   ───────────────────────────────────────────────────────────── */
+const CONFIG = {
+  // Google Form "Allergy Symptoms Log" (owner lgplonis@gmail.com). One Paragraph field holds the JSON payload.
+  formAction: "https://docs.google.com/forms/d/e/1FAIpQLSfA7JUJuz0pXlbt7UvK9Fkz1QVuSQ-SE3A_UD82gM6StoyQVw/formResponse",
+  entries: { date:"", payload:"entry.133047598" }   // date lives inside the JSON payload + Form timestamp
+};
+
+/* Shared 1–5 severity scale (higher = worse) */
+const SEV = [
+  {v:1,w:"None"},{v:2,w:"Slight"},{v:3,w:"Mild"},{v:4,w:"Mod."},{v:5,w:"Severe"}
+];
+
+const QUESTIONS = [
+  {sec:"Overall"},
+  {id:"overall", lab:"Overall, how do you feel this morning?", type:"scale5", req:true, scale:[
+    {v:1,w:"Great"},{v:2,w:"Good"},{v:3,w:"Okay"},{v:4,w:"Poor"},{v:5,w:"Awful"}]},
+
+  {sec:"Symptoms — rate each"},
+  {id:"congestion", lab:"Nasal congestion / stuffy nose", type:"scale5", req:true, scale:SEV},
+  {id:"runny",      lab:"Runny nose",                      type:"scale5", req:true, scale:SEV},
+  {id:"sneezing",   lab:"Sneezing",                        type:"scale5", req:true, scale:SEV},
+  {id:"eyes",       lab:"Itchy or watery eyes",            type:"scale5", req:true, scale:SEV},
+  {id:"throat",     lab:"Scratchy throat / postnasal drip",type:"scale5", req:true, scale:SEV},
+  {id:"cough",      lab:"Cough",                           type:"scale5", req:true, scale:SEV},
+  {id:"sinus",      lab:"Sinus / facial pressure",         type:"scale5", req:true, scale:SEV},
+  {id:"headache",   lab:"Headache",                        type:"scale5", req:true, scale:SEV},
+  {id:"chest",      lab:"Chest tightness / wheeze",        type:"scale5", req:true, scale:SEV},
+  {id:"fog",        lab:"Grogginess / brain fog",          type:"scale5", req:true, scale:SEV},
+
+  {sec:"Timing & sleep"},
+  {id:"onset", lab:"When did symptoms show up?", type:"choice", opts:[
+    {v:"At waking"},{v:"Built up after I got up"},{v:"No symptoms"}]},
+  {id:"nightwake", lab:"Did symptoms wake you in the night?", type:"choice", opts:[
+    {v:"No"},{v:"Yes"}]},
+  {id:"sleep", lab:"How well did you sleep?", type:"scale5", scale:[
+    {v:1,w:"Great"},{v:2,w:"Good"},{v:3,w:"Okay"},{v:4,w:"Poor"},{v:5,w:"Barely"}]},
+  {id:"draft", lab:"Felt cold or a draft overnight?", type:"choice", opts:[
+    {v:"No"},{v:"Yes"}]},
+
+  {sec:"The room"},
+  {id:"smell", lab:"Any smell in the room?", type:"choice", opts:[
+    {v:"None"},{v:"Faint"},{v:"Moderate"},{v:"Strong"}]},
+  {id:"smellwords", lab:"", type:"text", placeholder:"Optional — words for the smell (stale, plasticky, paint-y, stuffy…)"},
+  {id:"window", lab:"Window last night", type:"choice", opts:[
+    {v:"Open"},{v:"Cracked"},{v:"Closed"}]},
+  {id:"door", lab:"Door last night", type:"choice", opts:[
+    {v:"Open"},{v:"Part-open"},{v:"Closed"}]},
+
+  {sec:"Medication"},
+  {id:"meds", lab:"Any allergy / other meds in the last 24 h?", type:"choice", opts:[
+    {v:"No"},{v:"Yes"}]},
+  {id:"medsdetail", lab:"", type:"text", placeholder:"Optional — what and when (e.g. Reactine, 8am)"},
+
+  {sec:"Anything else"},
+  {id:"notes", lab:"", type:"textarea", placeholder:"Optional — worst symptom, anything unusual, how you felt later…"}
+];
+
+const answers = {};
+const formEl = document.getElementById('form');
+
+QUESTIONS.forEach(q=>{
+  if(q.sec){
+    const h=document.createElement('div');h.className='secthead';h.textContent=q.sec;formEl.appendChild(h);return;
+  }
+  const box=document.createElement('div');box.className='q';box.dataset.qid=q.id;
+  if(q.lab){const l=document.createElement('div');l.className='qlab';l.textContent=q.lab + (q.req?' *':'');box.appendChild(l);}
+
+  if(q.type==='text'||q.type==='textarea'){
+    const el=document.createElement(q.type==='textarea'?'textarea':'input');
+    el.className='note';el.placeholder=q.placeholder||'';
+    if(q.type==='input'||q.type==='text')el.type='text';
+    el.oninput=()=>{answers[q.id]=el.value.trim();};
+    box.appendChild(el);
+  } else {
+    const row=document.createElement('div');
+    row.className='opts '+(q.type==='scale5'?'scale5':'choice');
+    const list=q.type==='scale5'?q.scale:q.opts;
+    list.forEach(o=>{
+      const b=document.createElement('button');b.className='opt';b.dataset.v=o.v;
+      if(q.type==='scale5'){b.innerHTML='<span class="n">'+o.v+'</span><span class="w">'+(o.w||'')+'</span>';}
+      else{b.innerHTML='<span class="w" style="font-size:.85rem;color:inherit">'+o.v+'</span>';}
+      b.onclick=()=>{
+        row.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));
+        b.classList.add('on');answers[q.id]=o.v;box.classList.remove('miss');
+      };
+      row.appendChild(b);
+    });
+    box.appendChild(row);
+  }
+  formEl.appendChild(box);
+});
+
+/* date */
+function todayStr(){
+  const d=new Date();
+  return d.toLocaleDateString(undefined,{weekday:'long',year:'numeric',month:'short',day:'numeric'});
+}
+function dateISO(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+document.getElementById('today').textContent=todayStr();
+
+/* submit */
+const confirmEl=document.getElementById('confirm');
+document.getElementById('submit').onclick=()=>{
+  const missing=QUESTIONS.filter(q=>q.req && !answers[q.id]);
+  formEl.querySelectorAll('.q').forEach(x=>x.classList.remove('miss'));
+  if(missing.length){
+    missing.forEach(q=>{const el=formEl.querySelector('.q[data-qid="'+q.id+'"]');if(el)el.classList.add('miss');});
+    confirmEl.className='confirm err';
+    confirmEl.textContent='Please rate the '+missing.length+' highlighted item'+(missing.length>1?'s':'')+' ↑';
+    formEl.querySelector('.q.miss').scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+  answers.date=dateISO();
+
+  // Try Google Form post (if configured): two fields — date + JSON payload of every answer
+  if(CONFIG.formAction){
+    const fd=new FormData();
+    if(CONFIG.entries.date)    fd.append(CONFIG.entries.date, answers.date);
+    if(CONFIG.entries.payload) fd.append(CONFIG.entries.payload, JSON.stringify(answers));
+    fetch(CONFIG.formAction,{method:'POST',mode:'no-cors',body:fd}).catch(()=>{});
+    confirmEl.className='confirm ok';
+    confirmEl.textContent='Saved ✓  Thanks — see you tomorrow morning.';
+  } else {
+    // Fallback: build a copyable summary
+    const lines=['Morning Log — Corina — '+answers.date];
+    QUESTIONS.forEach(q=>{if(q.id && answers[q.id]!==undefined && answers[q.id]!=='')lines.push(labelFor(q)+': '+answers[q.id]);});
+    const txt=lines.join('\n');
+    document.getElementById('copytext').value=txt;
+    document.getElementById('copybox').style.display='block';
+    confirmEl.className='confirm ok';
+    confirmEl.textContent='Done ✓  Copy the summary below and send it.';
+    document.getElementById('copybox').scrollIntoView({behavior:'smooth',block:'center'});
+  }
+};
+function labelFor(q){return (q.lab||q.placeholder||q.id).replace(' *','').replace(/Optional — .*/,'').trim()||q.id;}
+
+document.getElementById('copybtn').onclick=()=>{
+  const t=document.getElementById('copytext');t.select();
+  try{document.execCommand('copy');}catch(e){}
+  if(navigator.clipboard)navigator.clipboard.writeText(t.value).catch(()=>{});
+  document.getElementById('copybtn').textContent='Copied ✓';
+};
+
+document.getElementById('foot').textContent='Innisfil – Air · morning allergy study · one entry per morning';
+</script>
+</body>
+</html>
