@@ -23,7 +23,8 @@
   .datebar{display:flex;align-items:center;gap:10px;margin:14px 0 6px;padding:12px 14px;
     background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
   .datebar .lab{font-size:.8rem;color:var(--muted)}
-  .datebar .date{font-size:1.02rem;font-weight:700}
+  .datebar .dateinput{font-size:1.02rem;font-weight:700;color:var(--ink);border:1px solid var(--line);
+    border-radius:10px;padding:8px 10px;background:#fbfdfe;font-family:inherit}
   /* legend */
   details.legend{background:var(--card);border:1px solid var(--line);border-radius:14px;
     margin:10px 0 18px;box-shadow:var(--shadow);overflow:hidden}
@@ -93,8 +94,8 @@
   </header>
 
   <div class="datebar">
-    <span class="lab">Today</span>
-    <span class="date" id="today"></span>
+    <label class="lab" for="logdate">Date</label>
+    <input class="dateinput" type="date" id="logdate">
   </div>
 
   <details class="legend">
@@ -152,17 +153,12 @@ const QUESTIONS = [
   {id:"sneezing",   lab:"Sneezing",                        type:"scale5", req:true, scale:SEV},
   {id:"eyes",       lab:"Itchy or watery eyes",            type:"scale5", req:true, scale:SEV},
   {id:"throat",     lab:"Scratchy throat / postnasal drip",type:"scale5", req:true, scale:SEV},
-  {id:"cough",      lab:"Cough",                           type:"scale5", req:true, scale:SEV},
-  {id:"sinus",      lab:"Sinus / facial pressure",         type:"scale5", req:true, scale:SEV},
   {id:"headache",   lab:"Headache",                        type:"scale5", req:true, scale:SEV},
-  {id:"chest",      lab:"Chest tightness / wheeze",        type:"scale5", req:true, scale:SEV},
   {id:"fog",        lab:"Grogginess / brain fog",          type:"scale5", req:true, scale:SEV},
 
   {sec:"Timing & sleep"},
   {id:"onset", lab:"When did symptoms show up?", type:"choice", opts:[
     {v:"At waking"},{v:"Built up after I got up"},{v:"No symptoms"}]},
-  {id:"nightwake", lab:"Did symptoms wake you in the night?", type:"choice", opts:[
-    {v:"No"},{v:"Yes"}]},
   {id:"sleep", lab:"How well did you sleep?", type:"scale5", scale:[
     {v:1,w:"Great"},{v:2,w:"Good"},{v:3,w:"Okay"},{v:4,w:"Poor"},{v:5,w:"Barely"}]},
   {id:"draft", lab:"Felt cold or a draft overnight?", type:"choice", opts:[
@@ -221,13 +217,10 @@ QUESTIONS.forEach(q=>{
   formEl.appendChild(box);
 });
 
-/* date */
-function todayStr(){
-  const d=new Date();
-  return d.toLocaleDateString(undefined,{weekday:'long',year:'numeric',month:'short',day:'numeric'});
-}
+/* date — defaults to today, but the user can change it; the chosen date is saved */
 function dateISO(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-document.getElementById('today').textContent=todayStr();
+const dateEl=document.getElementById('logdate');
+dateEl.value=dateISO();
 
 /* submit */
 const confirmEl=document.getElementById('confirm');
@@ -241,7 +234,7 @@ document.getElementById('submit').onclick=()=>{
     formEl.querySelector('.q.miss').scrollIntoView({behavior:'smooth',block:'center'});
     return;
   }
-  answers.date=dateISO();
+  answers.date=(dateEl && dateEl.value) ? dateEl.value : dateISO();
 
   // Try Google Form post (if configured): two fields — date + JSON payload of every answer
   if(CONFIG.formAction){
