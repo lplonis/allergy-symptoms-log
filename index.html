@@ -132,9 +132,19 @@
    copy-and-send fallback instead of posting.
    ───────────────────────────────────────────────────────────── */
 const CONFIG = {
-  // Google Form "Allergy Symptoms Log" (owner lgplonis@gmail.com). One Paragraph field holds the JSON payload.
-  formAction: "https://docs.google.com/forms/d/e/1FAIpQLSfA7JUJuz0pXlbt7UvK9Fkz1QVuSQ-SE3A_UD82gM6StoyQVw/formResponse",
-  entries: { date:"", payload:"entry.133047598" }   // date lives inside the JSON payload + Form timestamp
+  // Google Form "Allergy Symptoms Log" (owner lgplonis@gmail.com).
+  // NATIVE COLUMNS: each field posts to its own entry id, so every answer
+  // lands in its own column in the linked Google Sheet (no JSON blob).
+  formAction: "https://docs.google.com/forms/d/e/1FAIpQLSenr_56Wl09dV5x2FnXQs3iAcjwG7QDVH5cR9Ns6tsMJt6Wfg/formResponse",
+  entries: {
+    date:"entry.180660928",       overall:"entry.2003513186",   congestion:"entry.709798468",
+    runny:"entry.920735471",      sneezing:"entry.1199191917",  eyes:"entry.884198574",
+    throat:"entry.1718867564",    headache:"entry.2053124676",  fog:"entry.295420338",
+    onset:"entry.1282217030",     sleep:"entry.1268323241",     draft:"entry.2104479066",
+    smell:"entry.2123099826",     smellwords:"entry.1704392108",window:"entry.257437539",
+    door:"entry.523163411",       meds:"entry.487773484",       medsdetail:"entry.989956929",
+    notes:"entry.1664506740"
+  }
 };
 
 /* Shared 1–5 severity scale (higher = worse) */
@@ -236,11 +246,15 @@ document.getElementById('submit').onclick=()=>{
   }
   answers.date=(dateEl && dateEl.value) ? dateEl.value : dateISO();
 
-  // Try Google Form post (if configured): two fields — date + JSON payload of every answer
+  // Try Google Form post (if configured): one field per answer → native Sheet columns
   if(CONFIG.formAction){
     const fd=new FormData();
-    if(CONFIG.entries.date)    fd.append(CONFIG.entries.date, answers.date);
-    if(CONFIG.entries.payload) fd.append(CONFIG.entries.payload, JSON.stringify(answers));
+    for(const key in CONFIG.entries){
+      const id=CONFIG.entries[key];
+      if(!id) continue;
+      const val=answers[key];
+      fd.append(id, (val===undefined||val===null)?'':String(val));
+    }
     fetch(CONFIG.formAction,{method:'POST',mode:'no-cors',body:fd}).catch(()=>{});
     confirmEl.className='confirm ok';
     confirmEl.textContent='Saved ✓  Thanks — see you tomorrow morning.';
